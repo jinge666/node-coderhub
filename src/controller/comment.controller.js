@@ -1,4 +1,4 @@
-const {createComment,replyComment,updateComment,removeComment} = require('../service/comment.service')
+const {createComment,replyComment,updateComment,removeComment,getCommentByMomentId} = require('../service/comment.service')
 
 class commentController {
   async create (ctx,next) {
@@ -25,11 +25,17 @@ class commentController {
     const result = await removeComment(commentId)
     ctx.body = result
   }
+  async list (ctx,next) {
+    const {momentId} = ctx.params
+    const result = await getCommentByMomentId(momentId)
+    ctx.body = result
+  }
 }
 
 module.exports = {
   create,
   reply,
   update,
-  remove
+  remove,
+  list
 } = new commentController
