@@ -24,14 +24,24 @@ class momentService{
       SELECT
         m.id id,m.content content,m.createAt createTime,m.updateAt updateTime,
         JSON_OBJECT('id',u.id,'name',u.name) author,
-        JSON_ARRAYAGG(JSON_OBJECT('id',c.id,'content',c.content,'commentId',c.comment_id,'createTime',c.createAt,
-          'user',JSON_OBJECT('id',cu.id,'name',cu.name)
-        )) comments
+        IF(COUNT(l.id),JSON_ARRAYAGG(JSON_OBJECT('id',l.id,'name',l.name)),NULL) lables,
+        #子查询
+        (SELECT IF(COUNT(c.id),
+          JSON_ARRAYAGG(JSON_OBJECT('id',c.id,'content',c.content,'commentId',c.comment_id,'createTime',c.createAt,
+            'user',JSON_OBJECT('id',cu.id,'name',cu.name)
+          )),NULL) FROM comment c 
+          LEFT JOIN user cu ON c.user_id = cu.id 
+          WHERE m.id = c.moment_id) comments,
+        #子查询
+        (SELECT JSON_ARRAYAGG(CONCAT('http://localhost:8000/moment/images/',file.filename))
+          FROM file WHERE m.id = file.moment_id
+        ) images
       FROM moment m
       LEFT JOIN user u ON m.user_id = u.id
-      LEFT JOIN comment c ON c.moment_id = m.id
-      LEFT JOIN user cu ON c.user_id = cu.id
-      WHERE m.id = ?;
+      LEFT JOIN moment_lable ml ON ml.moment_id = m.id
+      LEFT JOIN lable l ON l.id = ml.lable_id
+      WHERE m.id = ?
+      GROUP BY m.id;
     `
     const result = await connection.execute(statement,[id])
     return result[0]
@@ -42,7 +52,8 @@ class momentService{
       SELECT
         m.id id,m.content content,m.createAt createTime,m.updateAt updateTime,
         JSON_OBJECT('id',u.id,'name',u.name) author,
-        (SELECT COUNT(*) FROM comment c WHERE c.moment_id = m.id) commentCount
+        (SELECT COUNT(*) FROM comment c WHERE c.moment_id = m.id) commentCount,
+        (SELECT COUNT(*) FROM moment_lable ml WHERE ml.moment_id = m.id) lableCount
       FROM moment m
       LEFT JOIN user u ON m.user_id = u.id
       LIMIT ?, ?

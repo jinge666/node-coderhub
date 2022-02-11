@@ -30,6 +30,7 @@ const verifyLogin = async (ctx,next) => {
 }
 
 const verifyAuth = async (ctx,next) => {
+  console.log('进来了吗');
   // 验证
   const authorization = ctx.header.authorization
   if(!authorization) {
@@ -45,7 +46,7 @@ const verifyAuth = async (ctx,next) => {
   }catch(err) {
     console.log(err);
     const error = new Error(errorTypes.UNAUTHORIZATION)
-    ctx.app.emit('error',ctx,error)
+    ctx.app.emit('error',error,ctx)
   }
 }
 module.exports = {

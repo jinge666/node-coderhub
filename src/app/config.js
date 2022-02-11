@@ -10,6 +10,7 @@ const PUBLIC_KEY = fs.readFileSync(path.resolve(__dirname,'./key/public.key'))
 // 解构并导出
 module.exports = {
   APP_PORT,
+  APP_HOST,
   SQL_PORT,
   SQL_DATABASE,
   SQL_HOST,
